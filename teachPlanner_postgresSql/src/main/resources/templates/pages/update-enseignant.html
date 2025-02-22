@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Modifier Enseignant</title>
+</head>
+<body>
+    <h2>Modifier Enseignant</h2>
+    <form th:action="@{/enseignants/update/{id}(id=${enseignant.id})}" method="post">
+        <input type="hidden" name="_method" value="put"/>
+        <div>
+            <label for="nom">Nom :</label>
+            <input type="text" id="nom" name="nom" th:value="${enseignant.nom}" required/>
+        </div>
+        <div>
+            <label for="prenom">Prénom :</label>
+            <input type="text" id="prenom" name="prenom" th:value="${enseignant.prenom}" required/>
+        </div>
+        <div>
+            <label for="idperso">ID Personnel :</label>
+            <input type="text" id="idperso" name="idperso" th:value="${enseignant.idperso}" required/>
+        </div>
+        <button type="submit">Enregistrer</button>
+    </form>
+</body>
+</html>

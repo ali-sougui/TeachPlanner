@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Modifier Salle</title>
+</head>
+<body>
+<h1 th:text="'Modifier la Salle : ' + ${salle.nomSalle}"></h1>
+<form th:action="@{/salles/modifier}" th:object="${salle}" method="post">
+    <label for="nomSalle">Numero :</label>
+    <input type="text" id="numSalle" th:field="*{numSalle}">
+    <label for="nomSalle">Nom :</label>
+    <input type="text" id="nomSalle" th:field="*{nomSalle}">
+    <br>
+
+    <label for="typeSalle" class="form-label">Type de Salle</label>
+    <select th:field="*{typeSalle}" class="form-select" id="typeSalle" required>
+        <option th:each="type : ${T(org.univ.projet_tutore.teachPlanner.model.TypeSalle).values()}"
+                th:value="${type}" th:text="${type}"></option>
+    </select>
+    <br>
+    <button type="submit">Enregistrer</button>
+</form>
+
+<!-- Affichage d'un message d'erreur s'il y en a -->
+<div th:if="${error}" style="color: red;" th:text="${error}"></div>
+</body>
+</html>

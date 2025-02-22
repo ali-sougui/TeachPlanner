@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ajouter une Séance</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css">
+</head>
+<body>
+<div class="container mt-5">
+    <h1>Ajouter une Séance</h1>
+    <form th:action="@{/addSeance}" th:object="${seance}" method="post">
+    <div class="mb-3">
+		<label for="heureDebut" class="form-label">Heure de Début</label>
+		            <select th:field="*{heureDebut}" class="form-control" id="heureDebut" name="heureDebut" required>
+						<option value="08:00">08:00</option>
+						<option value="10:00">10:00</option>
+		                <option value="12:00">12:00</option>
+		                <option value="16:00">16:00</option>
+		                <option value="18:00">18:00</option>
+		            </select>  </div>
+        <div class="mb-3">
+			<label for="heureFin" class="form-label">Heure de Fin</label>
+			            <select th:field="*{heureFin}" class="form-control" id="heureFin" name="heureFin" required>
+			                <option value="10:00">10:00</option>
+			                <option value="12:00">12:00</option>
+			                <option value="16:00">16:00</option>
+			                <option value="18:00">18:00</option>
+			            </select> </div>
+        <div class="mb-3">
+            <label for="date" class="form-label">Date</label>
+            <input type="date" th:field="*{date}" class="form-control" id="date" name="date" required>
+        </div>
+        <div class="mb-3">
+            <label for="numeroEns" class="form-label">Numéro d'Enseignant</label>
+            <input type="number" th:field="*{numeroEns}" class="form-control" id="numeroEns" name="numeroEns" required>
+        </div>
+        <div class="mb-3">
+            <label for="numeroSalle" class="form-label">Numéro de Salle</label>
+            <input type="number" th:field="*{numeroSalle}" class="form-control" id="numeroSalle" name="numeroSalle" required>
+        </div>
+        <div class="mb-3">
+            <label for="codeMatiere" class="form-label">Code de la Matière</label>
+            <input type="number" th:field="*{codeMatiere}" class="form-control" id="codeMatiere" name="codeMatiere" required>
+        </div>
+        <button type="submit" class="btn btn-success">Enregistrer</button>
+        <a href="/seances" class="btn btn-secondary">Annuler</a>
+    </form>
+    <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+</div>
+</body>
+</html>

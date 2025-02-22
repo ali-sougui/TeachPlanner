@@ -1,0 +1,1882 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emploi du Temps - UT2J</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/main.min.css' rel='stylesheet'>
+    <link href="/styles/seance2.css" rel='stylesheet'>
+    <!--    <script src="/scripts/profil.js" defer/>-->
+    <style>
+        .jour-checkbox {
+            display: none;
+        }
+        .jour-label {
+            cursor: pointer;
+            padding: 1rem;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+        .jour-checkbox:checked + .jour-label {
+            background-color: var(--ut2j-blue);
+            color: white;
+            border-color: var(--ut2j-blue);
+        }
+        .jour-label:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        :root {
+            --ut2j-blue: #003366;
+            --ut2j-light-blue: #004d99;
+            --ut2j-dark-blue: #001a33;
+            --ut2j-accent: #0066cc;
+        }
+
+        body {
+            background-color: #f8fafc;
+            min-height: 100vh;
+        }
+
+        .navbar {
+            background: linear-gradient(135deg, var(--ut2j-blue) 0%, var(--ut2j-dark-blue) 100%);
+            padding: 0.75rem 1rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.5rem 1rem;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            margin-left: 1rem;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            color: var(--ut2j-blue);
+            font-weight: 600;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .user-info-container {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .user-name {
+            color: white;
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin: 0;
+        }
+
+        .user-role {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.8rem;
+            margin: 0;
+        }
+
+        .navbar-brand {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            font-size: 1.25rem;
+            color: white !important;
+        }
+
+        .navbar-brand img {
+            height: 40px;
+            width: auto;
+        }
+
+        .nav-link {
+            color: rgba(255, 255, 255, 0.9) !important;
+            font-weight: 500;
+            padding: 0.5rem 1rem;
+            transition: all 0.3s ease;
+            border-radius: 8px;
+            margin: 0 0.2rem;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            color: white !important;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .nav-link i {
+            margin-right: 0.5rem;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .btn-action {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .btn-export {
+            background-color: white;
+            color: var(--ut2j-blue);
+            border: none;
+        }
+
+        .btn-export:hover {
+            background-color: #f8fafc;
+            transform: translateY(-1px);
+        }
+
+        .btn-logout {
+            background-color: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+
+        .btn-logout:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .dashboard-header {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .stat-card {
+            background: #f8fafc;
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--ut2j-blue);
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: #64748b;
+            margin-top: 0.25rem;
+        }
+
+        .filters-container {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-select {
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            padding: 0.6rem;
+            font-size: 0.9rem;
+            background-color: #f8fafc;
+        }
+
+        .form-select:focus {
+            border-color: var(--ut2j-accent);
+            box-shadow: 0 0 0 2px rgba(0, 102, 204, 0.1);
+        }
+
+        #calendar {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .fc {
+            font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+
+        .fc-toolbar-title {
+            font-size: 1.25rem !important;
+            font-weight: 600;
+            color: var(--ut2j-blue);
+        }
+
+        .fc-button-primary {
+            background-color: var(--ut2j-blue) !important;
+            border-color: var(--ut2j-blue) !important;
+            border-radius: 8px !important;
+            padding: 0.5rem 1rem !important;
+            font-weight: 500 !important;
+        }
+
+        .fc-button-primary:hover {
+            background-color: var(--ut2j-light-blue) !important;
+            border-color: var(--ut2j-light-blue) !important;
+        }
+
+        .fc-event {
+            border: none;
+            border-radius: 6px;
+            padding: 4px 6px;
+        }
+
+        .fc-event-title {
+            font-weight: 500;
+            font-size: 0.85rem;
+        }
+
+        .fc-timegrid-slot {
+            height: 3.5rem !important;
+        }
+
+        .modal-content {
+            border-radius: 12px;
+            border: none;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .modal-header {
+            background-color: var(--ut2j-blue);
+            color: white;
+            border-radius: 12px 12px 0 0;
+            padding: 1.25rem;
+        }
+
+        .modal-title {
+            font-weight: 600;
+            font-size: 1.25rem;
+        }
+
+        .modal-body {
+            padding: 1.5rem;
+        }
+
+        .modal-footer {
+            padding: 1.25rem;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .btn-modal {
+            border-radius: 8px;
+            padding: 0.6rem 1.25rem;
+            font-weight: 500;
+        }
+
+        @media (max-width: 768px) {
+            .navbar-brand img {
+                height: 32px;
+            }
+
+            .user-profile {
+                margin: 1rem 0;
+            }
+
+            .stats-container {
+                grid-template-columns: 1fr;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+                width: 100%;
+            }
+
+            .btn-action {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background-color: #ef4444;
+            color: white;
+            border-radius: 50%;
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .notification-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            width: 320px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            display: none;
+        }
+
+        .notification-dropdown.show {
+            display: block;
+        }
+
+        .notification-item {
+            padding: 1rem;
+            border-bottom: 1px solid #e2e8f0;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .notification-item:hover {
+            background-color: #f8fafc;
+        }
+
+        .notification-item:last-child {
+            border-bottom: none;
+        }
+
+        .notification-header {
+            padding: 1rem;
+            background-color: var(--ut2j-blue);
+            color: white;
+            border-radius: 12px 12px 0 0;
+            font-weight: 600;
+        }
+
+        .profile-modal .modal-body {
+            padding: 0;
+        }
+
+        .profile-header {
+            background: linear-gradient(135deg, var(--ut2j-blue) 0%, var(--ut2j-dark-blue) 100%);
+            padding: 2rem;
+            text-align: center;
+            color: white;
+            border-radius: 12px 12px 0 0;
+        }
+
+        .profile-avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: white;
+            margin: 0 auto 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            color: var(--ut2j-blue);
+            font-weight: 600;
+            border: 4px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .profile-name {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .profile-role {
+            font-size: 1rem;
+            opacity: 0.9;
+        }
+
+        .profile-info {
+            padding: 2rem;
+        }
+
+        .profile-info-item {
+            margin-bottom: 1.5rem;
+        }
+
+        .profile-info-label {
+            font-size: 0.875rem;
+            color: #64748b;
+            margin-bottom: 0.25rem;
+        }
+
+        .profile-info-value {
+            font-size: 1rem;
+            color: #1e293b;
+            font-weight: 500;
+        }
+
+        .stats-update-animation {
+            animation: fadeInUp 0.5s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        a{
+            text-decoration: none;
+            color: #001a33;
+        }
+        .combobox-container {
+            position: relative;
+        }
+
+        .combobox-input {
+            width: 100%;
+            padding: 0.6rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            background-color: #f8fafc;
+        }
+
+        .combobox-input:focus {
+            border-color: var(--ut2j-accent);
+            box-shadow: 0 0 0 2px rgba(0, 102, 204, 0.1);
+            outline: none;
+        }
+
+        .combobox-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            max-height: 200px;
+            overflow-y: auto;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            margin-top: 4px;
+            z-index: 1000;
+            display: none;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .combobox-dropdown.show {
+            display: block;
+        }
+
+        .combobox-option {
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+        }
+
+        .combobox-option:hover {
+            background-color: #f8fafc;
+        }
+
+        .combobox-option.selected {
+            background-color: #e2e8f0;
+        }
+
+    </style>
+</head>
+<body>
+<nav class="navbar navbar-expand-lg">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="#">
+            <img src="/images/logo.jpg"
+                 alt="Logo UT2J">
+            Teach Planner
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item">
+                    <a class="nav-link active" href="/seances">
+                        <i class="fas fa-calendar-alt"></i>Calendrier
+                    </a>
+                </li>
+                <li class="nav-item" th:classappend="${session.isAdmin ? 'd-none' : ''}">
+                    <a class="nav-link" href="/disponnibilite" id="voirdispos">
+                        <i class="fas fa-clock"></i>Disponibilités
+                    </a>
+                </li>
+                <li class="nav-item" th:if="${session.isAdmin}">
+                    <a class="nav-link" href="/personnels/liste">
+                        <i class="fas fa-users"></i>Enseignants
+                    </a>
+                </li>
+                <li class="nav-item" th:if="${session.isAdmin}">
+                    <a class="nav-link" href="/salles">
+                        <i class="fas fa-door-open"></i>Salles
+                    </a>
+                </li>
+                <li class="nav-item" th:if="${session.isAdmin}">
+                    <a class="nav-link" href="/matieres">
+                        <i class="fas fa-book"></i>Matières
+                    </a>
+                </li>
+            </ul>
+
+            <div class="d-flex align-items-center">
+                <div class="action-buttons">
+                    <button id="exportPDF" class="btn btn-action btn-export">
+                        <i class="fas fa-file-pdf"></i>Exporter en PDF
+                    </button>
+                    <div class="position-relative me-3">-->
+                        <button class="btn btn-icon btn-transparent" id="notificationButton">
+                            <i class="fas fa-bell text-white"></i>
+                            <span class="notification-badge" id="notificationBadge">0</span>
+                        </button>
+                    </div>
+                    <!-- Section du profil améliorée -->
+                    <div class="user-profile" id="profileTrigger">
+                        <div class="user-avatar">
+                            <span th:text="${#strings.substring(session.userEmail,0,1).toUpperCase()}">U</span>
+                        </div>
+                        <div class="user-info-container">
+                            <p class="user-name" th:text="${session.nom + ' ' + session.prenom}">Nom Prénom</p>
+                            <p class="user-role" th:text="${session.isAdmin ? 'Administrateur' : 'Enseignant'}">Rôle</p>
+                        </div>
+                    </div>
+
+                    <!-- Nouveau menu déroulant du profil -->
+                    <div class="profile-dropdown" id="profileDropdown">
+                        <div class="profile-header">
+                            <div class="profile-avatar">
+                                <span th:text="${#strings.substring(session.userEmail,0,1).toUpperCase()}">U</span>
+                            </div>
+                            <h4 class="profile-name" th:text="${session.nom + ' ' + session.prenom}">Nom Prénom</h4>
+                            <p class="profile-role">
+                                <!--                                <span th:text="${session.isAdmin ? 'Administrateur' : 'Enseignant'}">Rôle</span>-->
+                                <span class="status-badge online">
+                    <i class="fas fa-circle fa-xs"></i> En ligne
+                </span>
+                            </p>
+                        </div>
+
+
+                        <div class="profile-info">
+                            <div class="profile-info-item">
+                                <div class="profile-info-icon">
+                                    <i class="fas fa-envelope"></i>
+                                </div>
+                                <div class="profile-info-content">
+                                    <p class="profile-info-label">Email</p>
+                                    <p class="profile-info-value" th:text="${session.userEmail}">email@example.com</p>
+                                </div>
+                            </div>
+
+
+
+                            <div class="profile-info-item">
+                                <div class="profile-info-icon">
+                                    <i class="fas fa-user-tag"></i>
+                                </div>
+                                <div class="profile-info-content">
+                                    <p class="profile-info-label">Statut</p>
+                                    <span th:text="${session.isAdmin ? 'Administrateur' : 'Enseignant'}">Rôle</span>
+                                    <!--                                    <p class="profile-info-value" th:text="${session.statut}">Statut</p>-->
+                                </div>
+                            </div>
+
+                            <!--                            <div class="profile-info-item">-->
+                            <!--                                <div class="profile-info-icon">-->
+                            <!--                                    <i class="fas fa-calendar-check"></i>-->
+                            <!--                                </div>-->
+                            <!--                                <div class="profile-info-content">-->
+                            <!--                                    <p class="profile-info-label">Date d'entrée</p>-->
+                            <!--                                    <p class="profile-info-value" th:text="${#temporals.format(session.dateEntree, 'dd MMMM yyyy')}">-->
+                            <!--                                        Date d'entrée-->
+                            <!--                                    </p>-->
+                            <!--                                </div>-->
+                            <!--                            </div>-->
+                        </div>
+                        <div>
+
+                            <a href="/administrateurs/logout" class="btn btn-action"><i class="fas fa-sign-out-alt"></i>Déconnexion</a>
+                        </div>
+
+
+                        <!--                        <div class="profile-footer">-->
+                        <!--                            <button class="profile-action-btn btn-theme" id="themeToggle">-->
+                        <!--                                <i class="fas fa-moon"></i>-->
+                        <!--                                Thème sombre-->
+                        <!--                            </button>-->
+                        <!--                            <a href="/administrateurs/logout" class="profile-action-btn btn-logout" color="blue">-->
+                        <!--                                <i class="fas fa-sign-out-alt"></i>-->
+                        <!--                                Déconnexion-->
+                        <!--                            </a>-->
+                        <!--                        </div>-->
+
+                        <div class="last-login">
+                            Dernière connexion: <span th:text="${#temporals.format(session.lastLogin, 'dd/MM/yyyy HH:mm')}">01/01/2024 12:00</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Ajout du système de notifications -->
+                <div class="notification-dropdown" id="notificationDropdown">
+                    <div class="notification-header">
+                        <i class="fas fa-bell me-2"></i>
+                        Notifications
+                    </div>
+                    <div class="notification-list">
+                        <!-- Les notifications seront ajoutées dynamiquement ici -->
+                    </div>
+                </div>
+
+                <!-- Modification de la section user-profile pour ajouter le bouton de notifications -->
+                <!--                    <div class="user-profile">-->
+                <!--                        <div class="position-relative me-3">-->
+                <!--                            <button class="btn btn-icon btn-transparent" id="notificationButton">-->
+                <!--                                <i class="fas fa-bell text-white"></i>-->
+                <!--                                <span class="notification-badge" id="notificationBadge">0</span>-->
+                <!--                            </button>-->
+                <!--                        </div>-->
+                <!--                        <div class="user-avatar" style="cursor: pointer;" data-bs-toggle="modal" data-bs-target="#profileModal">-->
+                <!--                            <span th:text="${#strings.substring(session.userEmail,0,1).toUpperCase()}">U</span>-->
+                <!--                        </div>-->
+                <!--                        <div class="user-info-container">-->
+                <!--                            <p class="user-name" th:text="${session.userEmail}">email@example.com</p>-->
+                <!--                            <p class="user-role" th:text="${session.isAdmin ? 'Administrateur' : 'Enseignant'}">Rôle</p>-->
+                <!--                        </div>-->
+                <!--                        <div class="user-info-container">-->
+                <!--                            <p class="user-name">Chargement...</p>-->
+                <!--                            <p class="user-role" th:text="${session.isAdmin ? 'Administrateur' : 'Enseignant'}">Rôle</p>-->
+                <!--                        </div>-->
+
+                <!--                        <a href="/administrateurs/logout" class="btn btn-action btn-logout">-->
+                <!--                            <i class="fas fa-sign-out-alt"></i>-->
+                <!--                        </a>-->
+                <!--                    </div>-->
+                <!--                </div>-->
+            </div>
+        </div>
+    </div>
+</nav>
+
+<div class="container-fluid py-4">
+    <div class="dashboard-header">
+        <h1 class="h3 mb-3" th:text="${session.isAdmin ? 'Tableau de bord administrateur' : 'Mon emploi du temps'}">
+            Tableau de bord
+        </h1>
+
+        <div class="stats-container">
+            <div class="stat-card">
+                <div class="stat-value" data-stat="totalSeances">0</div>
+                <div class="stat-label">Nombre de Séances</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" data-stat="totalHeures">0</div>
+                <div class="stat-label">Total Heures de cours</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" data-stat="totalMatieres">0</div>
+                <div class="stat-label">Matières différentes</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" data-stat="totalSalles">0</div>
+                <div class="stat-label">Total de Salles utilisées</div>
+            </div>
+        </div>
+
+
+    </div>
+    <!-- Nouvelle section pour les disponibilités -->
+    <div class="dashboard-header mb-4" th:classappend="${session.isAdmin ? 'd-none' : ''}" id="disponibiliteSection" style="display: none;">
+        <h2 class="h4 mb-4">Mes Disponibilités</h2>
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <h5 class="card-title mb-4">Sélectionnez vos jours de disponibilité</h5>
+                        <form id="disponibiliteForm" class="row g-3">
+                            <div class="col" th:each="jour : ${T(org.univ.projet_tutore.teachPlanner.model.Disponibilite.JourSemaine).values()}">
+                                <input type="checkbox" th:id="${jour}" th:value="${jour}"
+                                       class="jour-checkbox" name="jours">
+                                <label th:for="${jour}" class="jour-label w-100"
+                                       th:text="${#strings.capitalize(#strings.toLowerCase(jour))}">
+                                    Jour
+                                </label>
+                            </div>
+                            <div class="col-12 text-center mt-4">
+                                <button type="submit" class="btn btn-primary px-4">
+                                    <i class="fas fa-save me-2"></i>Enregistrer
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="filters-container" th:classappend="${!session.isAdmin ? 'd-none' : ''}">
+        <div class="row g-3">
+            <div class="col-md-4">
+                <label for="filterEnseignant" class="form-label">
+                    <i class="fas fa-user-tie me-2"></i>Filtrer par enseignant
+                </label>
+                <select id="filterEnseignant" class="form-select">
+                    <option value="">Tous les enseignants</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label for="filterSalle" class="form-label">
+                    <i class="fas fa-door-open me-2"></i>Filtrer par salle
+                </label>
+                <select id="filterSalle" class="form-select">
+                    <option value="">Toutes les salles</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label for="filterMatiere" class="form-label">
+                    <i class="fas fa-book me-2"></i>Filtrer par matière
+                </label>
+                <select id="filterMatiere" class="form-select">
+                    <option value="">Toutes les matières</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <div id="calendar"></div>
+</div>
+
+<!-- Modal d'ajout/modification de séance -->
+<div class="modal fade" id="seanceModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalTitle">
+                    <i class="fas fa-calendar-plus me-2"></i>Ajouter une Séance
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="seanceForm" class="row g-3">
+                    <div class="col-md-6">
+                        <label for="date" class="form-label">
+                            <i class="fas fa-calendar me-2"></i>Date
+                        </label>
+                        <input type="date" id="date" name="date" class="form-control" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="heureDebut" class="form-label">
+                            <i class="fas fa-clock me-2"></i>Heure de début
+                        </label>
+                        <select id="heureDebut" name="heureDebut" class="form-select" required>
+                            <option value="08:00">08:00</option>
+                            <option value="09:00">09:00</option>
+                            <option value="10:00">10:00</option>
+                            <option value="11:00">11:00</option>
+                            <option value="12:00">12:00</option>
+                            <option value="13:00">13:00</option>
+                            <option value="14:00">14:00</option>
+                            <option value="15:00">15:00</option>
+                            <option value="16:00">16:00</option>
+                            <option value="17:00">17:00</option>
+                            <option value="18:00">18:00</option>
+                            <option value="19:00">19:00</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="heureFin" class="form-label">
+                            <i class="fas fa-clock me-2"></i>Heure de fin
+                        </label>
+                        <select id="heureFin" name="heureFin" class="form-select" required>
+                            <option value="09:00">09:00</option>
+                            <option value="10:00">10:00</option>
+                            <option value="11:00">11:00</option>
+                            <option value="12:00">12:00</option>
+                            <option value="13:00">13:00</option>
+                            <option value="14:00">14:00</option>
+                            <option value="15:00">15:00</option>
+                            <option value="16:00">16:00</option>
+                            <option value="17:00">17:00</option>
+                            <option value="18:00">18:00</option>
+                            <option value="19:00">19:00</option>
+                            <option value="20:00">20:00</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="numeroEns" class="form-label">
+                            <i class="fas fa-user-tie me-2"></i>Enseignant
+                        </label>
+                        <div class="combobox-container">
+                            <input type="text" id="numeroEns" name="numeroEns" class="combobox-input"
+                                   placeholder="Rechercher un enseignant" autocomplete="off" required>
+                            <div id="numeroEnsDropdown" class="combobox-dropdown"></div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="numeroSalle" class="form-label">
+                            <i class="fas fa-door-open me-2"></i>Salle
+                        </label>
+                        <div class="combobox-container">
+                            <input type="text" id="numeroSalle" name="numeroSalle" class="combobox-input"
+                                   placeholder="Rechercher une salle" autocomplete="off" required>
+                            <div id="numeroSalleDropdown" class="combobox-dropdown"></div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="codeMatiere" class="form-label">
+                            <i class="fas fa-book me-2"></i>Matière
+                        </label>
+                        <div class="combobox-container">
+                            <input type="text" id="codeMatiere" name="codeMatiere" class="combobox-input"
+                                   placeholder="Rechercher une matière" autocomplete="off" required>
+                            <div id="codeMatiereDropdown" class="combobox-dropdown"></div>
+                        </div>
+                    </div>
+
+
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger btn-modal" id="remove">
+                    <i class="fas fa-trash-alt me-2"></i>Supprimer
+                </button>
+                <button type="button" class="btn btn-secondary btn-modal" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-2"></i>Annuler
+                </button>
+                <button type="button" class="btn btn-success btn-modal" id="saveSeance">
+                    <i class="fas fa-save me-2"></i>Enregistrer
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js'></script>
+<script src='https://cdn.jsdelivr.net/npm/@fullcalendar/core/locales/fr.js'></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+<script th:inline="javascript">
+    let notifications = [];
+
+    function updateDashboardStats() {
+        fetch('/api/dashboard-stats')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Erreur lors de la récupération des statistiques');
+                }
+                return response.json();
+            })
+            .then(stats => {
+                console.log('Statistiques reçues:', stats); // Pour le débogage
+                Object.entries(stats).forEach(([key, value]) => {
+                    const element = document.querySelector(`[data-stat="${key}"]`);
+                    if (element) {
+                        element.textContent = value;
+                        element.classList.add('stats-update-animation');
+                        setTimeout(() => element.classList.remove('stats-update-animation'), 500);
+                    }
+                });
+            })
+            .catch(error => {
+                console.error('Erreur lors de la mise à jour des statistiques:', error);
+            });
+    }
+
+    function addNotification(message, type = 'info') {
+        notifications.push({
+            id: Date.now(),
+            message,
+            type,
+            read: false,
+            timestamp: new Date()
+        });
+        updateNotificationBadge();
+        updateNotificationList();
+    }
+
+    function updateNotificationBadge() {
+        const unreadCount = notifications.filter(n => !n.read).length;
+        const badge = document.getElementById('notificationBadge');
+        badge.textContent = unreadCount;
+        badge.style.display = unreadCount > 0 ? 'block' : 'none';
+    }
+
+    function updateNotificationList() {
+        const list = document.querySelector('.notification-list');
+        list.innerHTML = notifications.length > 0 ? notifications.map(n => `
+            <div class="notification-item ${n.read ? 'read' : ''}" data-id="${n.id}">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="notification-message">${n.message}</div>
+                        <small class="text-muted">${new Date(n.timestamp).toLocaleString()}</small>
+
+                    </div>
+                    ${!n.read ? '<span class="badge bg-primary">Nouveau</span>' : ''}
+                </div>
+            </div>
+        `).join('') : '<div class="p-3 text-center text-muted">Aucune notification</div>';
+    }
+
+
+    document.addEventListener('DOMContentLoaded', function() {
+        // Récupération des variables de session Thymeleaf
+        const isAdmin = /*[[${session.isAdmin}]]*/ false;
+        const userId = /*[[${session.userId}]]*/ null;
+        const userEmail = /*[[${session.userEmail}]]*/ '';
+        const lastConnexion = /*[[${session.lastConnexion}]]*/ '';
+
+        const calendarEl = document.getElementById('calendar');
+        const modal = new bootstrap.Modal(document.getElementById('seanceModal'));
+        let currentSeance = null;
+        let calendar = null;
+        let allSeances = [];
+
+        // Définition des couleurs pour les matières
+        const couleursMatieres = {
+            "Mathematique": "#ff5733",
+            "Physique": "#33ff57",
+            "Informatique": "#3357ff",
+            "Chimie": "#ff33a6",
+            "Anglais": "#a633ff",
+            "Histoire": "#ffbb33",
+            "Géographie": "#33ffbb"
+        };
+        document.getElementById("voirdispos").addEventListener("click", function(event) {
+            event.preventDefault(); // Empêche le lien de rediriger
+            let form = document.getElementById("disponibiliteSection");
+            form.style.display = (form.style.display === "none" || form.style.display === "") ? "block" : "none";
+        });
+
+        // Initialiser le calendrier
+        calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'timeGridWeek',
+            headerToolbar: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'dayGridMonth,timeGridWeek,timeGridDay'
+            },
+            locale: 'fr',
+            firstDay: 1,
+            weekNumbers: true,
+            weekText: 'S',
+            slotMinTime: '08:00:00',
+            slotMaxTime: '20:00:00',
+            allDaySlot: false,
+            height: 'auto',
+            expandRows: true,
+            stickyHeaderDates: true,
+            nowIndicator: true,
+            editable: isAdmin,
+            selectable: isAdmin,
+            selectMirror: true,
+            businessHours: {
+                daysOfWeek: [1, 2, 3, 4, 5],
+                startTime: '08:00',
+                endTime: '20:00',
+            },
+            selectConstraint: {
+                daysOfWeek: [1, 2, 3, 4, 5]
+            },
+            dateClick: function(info) {
+                if (!isAdmin) return;
+
+                const clickedDate = new Date(info.date);
+                const dayOfWeek = clickedDate.getDay();
+
+                if (dayOfWeek === 0 || dayOfWeek === 6) {
+                    alert('Les séances ne peuvent pas être créées le weekend');
+                    return;
+                }
+
+                currentSeance = null;
+                document.getElementById('seanceForm').reset();
+                document.getElementById('date').value = info.dateStr.split('T')[0];
+                document.getElementById('heureDebut').value = info.dateStr.split('T')[1].slice(0, 5);
+
+                const heureFin = new Date(clickedDate.getTime() + 60 * 60 * 1000);
+                document.getElementById('heureFin').value = heureFin.toTimeString().slice(0, 5);
+
+                document.getElementById('modalTitle').textContent = 'Ajouter une Séance';
+                document.getElementById('remove').style.display = 'none';
+
+                loadAllSelects().then(() => {
+                    modal.show();
+                });
+            },
+
+            // Dans la fonction eventClick
+            eventClick: function(info) {
+                if (!isAdmin) return;
+
+                currentSeance = info.event;
+                document.getElementById('modalTitle').textContent = 'Modifier la Séance';
+                document.getElementById('date').value = info.event.startStr.split('T')[0];
+                document.getElementById('heureDebut').value = info.event.startStr.split('T')[1].slice(0, 5);
+                document.getElementById('heureFin').value = info.event.endStr.split('T')[1].slice(0, 5);
+
+                loadAllSelects().then(() => {
+                    // Stockez les valeurs actuelles dans des attributs data-* pour les conserver
+                    const form = document.getElementById('seanceForm');
+
+                    // Stockage des valeurs originales
+                    form.setAttribute('data-original-numero-ens', info.event.extendedProps.numeroEns);
+                    form.setAttribute('data-original-numero-salle', info.event.extendedProps.numeroSalle);
+                    form.setAttribute('data-original-code-matiere', info.event.extendedProps.codeMatiere);
+                    form.setAttribute('data-original-date', info.event.startStr.split('T')[0]);
+                    form.setAttribute('data-original-heure-debut', info.event.startStr.split('T')[1].slice(0, 5));
+                    form.setAttribute('data-original-heure-fin', info.event.endStr.split('T')[1].slice(0, 5));
+
+                    // Définir les valeurs dans les combobox avec les noms
+                    window.comboboxEns.setValue(info.event.extendedProps.numeroEns);
+                    window.comboboxSalle.setValue(info.event.extendedProps.numeroSalle);
+                    window.comboboxMatiere.setValue(info.event.extendedProps.codeMatiere);
+
+                    // Mettre à jour les champs de texte avec les noms
+                    document.getElementById('numeroEns').value = info.event.extendedProps.nomEnseignant;
+                    document.getElementById('numeroSalle').value = info.event.extendedProps.nomSalle;
+                    document.getElementById('codeMatiere').value = info.event.extendedProps.nomMatiere;
+
+                    document.getElementById('remove').style.display = 'block';
+                    modal.show();
+                });
+            },
+
+            eventDrop: function(info) {
+                if (!isAdmin) {
+                    info.revert();
+                    return;
+                }
+
+                const droppedDate = info.event.start;
+                const dayOfWeek = droppedDate.getDay();
+
+                if (dayOfWeek === 0 || dayOfWeek === 6) {
+                    alert('Les séances ne peuvent pas être déplacées au weekend');
+                    info.revert();
+                    return;
+                }
+
+                const seance = {
+                    date: info.event.startStr.split('T')[0],
+                    heureDebut: info.event.startStr.split('T')[1].slice(0, 5),
+                    heureFin: info.event.endStr.split('T')[1].slice(0, 5),
+                    numeroEns: info.event.extendedProps.numeroEns,
+                    numeroSalle: info.event.extendedProps.numeroSalle,
+                    codeMatiere: info.event.extendedProps.codeMatiere
+                };
+
+                updateSeance(info.event.id, seance).catch(error => {
+                    console.error('Erreur lors de la mise à jour:', error);
+                    info.revert();
+                });
+            }
+        });
+
+        calendar.render();
+
+        // Configuration des écouteurs d'événements
+        setupEventListeners();
+        loadSeances();
+
+        function setupEventListeners() {
+            document.getElementById('remove').addEventListener('click', function(e) {
+                e.preventDefault();
+                if (!currentSeance || !currentSeance.id) return;
+
+                if (confirm('Êtes-vous sûr de vouloir supprimer cette séance ?')) {
+                    deleteSeance(currentSeance.id)
+                        .then(() => {
+                            modal.hide();
+                            loadSeances();
+                        })
+                        .catch(error => {
+                            console.error('Erreur lors de la suppression:', error);
+                            alert('Erreur lors de la suppression de la séance');
+                        });
+                }
+            });
+
+            // document.getElementById('saveSeance').addEventListener('click', function() {
+            //     const formData = new FormData(document.getElementById('seanceForm'));
+            //     const date = formData.get('date');
+            //     const dayOfWeek = new Date(date).getDay();
+            //
+            //     if (dayOfWeek === 0 || dayOfWeek === 6) {
+            //         alert('Les séances ne peuvent pas être créées le weekend');
+            //         return;
+            //     }
+            //
+            //     if (formData.get('heureDebut') >= formData.get('heureFin')) {
+            //         alert("L'heure de début ne peut pas être supérieure ou égale à l'heure de fin");
+            //         return;
+            //     }
+            //
+            //     const seance = {
+            //         date: formData.get('date'),
+            //         heureDebut: formData.get('heureDebut'),
+            //         heureFin: formData.get('heureFin'),
+            //         numeroEns: parseInt(formData.get('numeroEns')),
+            //         numeroSalle: parseInt(formData.get('numeroSalle')),
+            //         codeMatiere: parseInt(formData.get('codeMatiere'))
+            //     };
+            //
+            //     const promise = currentSeance
+            //         ? updateSeance(currentSeance.id, seance)
+            //         : createSeance(seance);
+            //
+            //     promise
+            //         .then(() => {
+            //             modal.hide();
+            //             loadSeances();
+            //         })
+            //         .catch(error => {
+            //             console.error('Erreur:', error);
+            //             alert('Erreur lors de l\'opération');
+            //         });
+            // });
+
+            document.getElementById('exportPDF').addEventListener('click', exportToPDF);
+
+            // Gestionnaires des filtres
+            document.getElementById('filterEnseignant').addEventListener('change', applyFilters);
+            document.getElementById('filterSalle').addEventListener('change', applyFilters);
+            document.getElementById('filterMatiere').addEventListener('change', applyFilters);
+        }
+
+        function loadSeances() {
+            fetch('/api/seances')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(response.status === 401 ? 'Non autorisé' : 'Erreur serveur');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Données reçues:', data); // Pour le débogage
+
+                    // Mise à jour du nom de l'utilisateur
+                    if (data.nomComplet) {
+                        const userNameElements = document.querySelectorAll('.user-name');
+                        userNameElements.forEach(element => {
+                            element.textContent = data.nomComplet;
+                        });
+
+                        // Mise à jour du nom dans le modal de profil
+                        const profileNameElement = document.querySelector('.profile-name');
+                        if (profileNameElement) {
+                            profileNameElement.textContent = data.nomComplet;
+                        }
+
+                        // Mise à jour de l'avatar
+                        const avatarElements = document.querySelectorAll('.user-avatar span');
+                        avatarElements.forEach(element => {
+                            element.textContent = data.nomComplet.charAt(0).toUpperCase();
+                        });
+                    }
+
+                    // Traitement des séances
+                    if (data.seances) {
+                        allSeances = data.seances;
+                        updateFiltersOptions(data.seances);
+                        displaySeances(data.seances);
+                    }
+                })
+                .catch(error => {
+                    console.error('Erreur:', error);
+                    const calendar = document.getElementById('calendar');
+                    if (calendar) {
+                        calendar.innerHTML = `
+                    <div class="alert alert-danger" role="alert">
+                        <h4 class="alert-heading">Erreur de chargement</h4>
+                        <p>${error.message}</p>
+                        <hr>
+                        <p class="mb-0">Veuillez réessayer plus tard ou contacter l'administrateur.</p>
+                    </div>
+                `;
+                    }
+                });
+        }
+        function loadEnseignants() {
+            return fetch('/api/enseignants')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Erreur lors de la récupération des enseignants');
+                    }
+                    return response.json();
+                })
+                .then(enseignants => {
+                    const select = document.getElementById('numeroEns');
+                    select.innerHTML = '<option value="">Sélectionner un enseignant</option>';
+                    enseignants.forEach(enseignant => {
+                        const option = document.createElement('option');
+                        option.value = enseignant.numero_ens;
+                        option.textContent = enseignant.nom_complet;
+                        select.appendChild(option);
+                    });
+                })
+                .catch(error => {
+                    console.error('Erreur:', error);
+                    addNotification('Erreur lors du chargement des enseignants', 'error');
+                });
+        }
+
+        function loadSalles() {
+            return fetch('/api/salles')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Erreur lors de la récupération des salles');
+                    }
+                    return response.json();
+                })
+                .then(salles => {
+                    const select = document.getElementById('numeroSalle');
+                    select.innerHTML = '<option value="">Sélectionner une salle</option>';
+                    salles.forEach(salle => {
+                        const option = document.createElement('option');
+                        option.value = salle.numero_salle;
+                        option.textContent = salle.nom_salle;
+                        select.appendChild(option);
+                    });
+                })
+                .catch(error => {
+                    console.error('Erreur:', error);
+                    addNotification('Erreur lors du chargement des salles', 'error');
+                });
+        }
+
+        function loadMatieres() {
+            return fetch('/api/matieres')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Erreur lors de la récupération des matières');
+                    }
+                    return response.json();
+                })
+                .then(matieres => {
+                    const select = document.getElementById('codeMatiere');
+                    select.innerHTML = '<option value="">Sélectionner une matière</option>';
+                    matieres.forEach(matiere => {
+                        const option = document.createElement('option');
+                        option.value = matiere.code_matiere;
+                        option.textContent = matiere.nom_matiere;
+                        select.appendChild(option);
+                    });
+                })
+                .catch(error => {
+                    console.error('Erreur:', error);
+                    addNotification('Erreur lors du chargement des matières', 'error');
+                });
+        }
+
+
+        function createCombobox(inputId, dropdownId, data, displayKey, valueKey) {
+            const input = document.getElementById(inputId);
+            const dropdown = document.getElementById(dropdownId);
+            let selectedValue = '';
+            let items = [];
+
+            function filterItems(query) {
+                return data.filter(item =>
+                    item[displayKey].toLowerCase().includes(query.toLowerCase())
+                );
+            }
+
+            function updateDropdown(filteredItems) {
+                dropdown.innerHTML = '';
+                items = filteredItems;
+
+                filteredItems.forEach((item, index) => {
+                    const option = document.createElement('div');
+                    option.className = 'combobox-option';
+                    option.textContent = item[displayKey];
+                    if(item[valueKey] === selectedValue) {
+                        option.classList.add('selected');
+                    }
+
+                    option.addEventListener('click', () => {
+                        input.value = item[displayKey];
+                        selectedValue = item[valueKey];
+                        input.dataset.value = selectedValue;
+                        dropdown.classList.remove('show');
+                    });
+
+                    dropdown.appendChild(option);
+                });
+            }
+
+            input.addEventListener('focus', () => {
+                updateDropdown(data);
+                dropdown.classList.add('show');
+            });
+
+            input.addEventListener('input', () => {
+                const filteredItems = filterItems(input.value);
+                updateDropdown(filteredItems);
+                dropdown.classList.add('show');
+            });
+
+            document.addEventListener('click', (e) => {
+                if (!input.contains(e.target) && !dropdown.contains(e.target)) {
+                    dropdown.classList.remove('show');
+                }
+            });
+
+            // Pour définir une valeur programmatiquement
+            return {
+                setValue: (value) => {
+                    const item = data.find(i => i[valueKey] === value);
+                    if (item) {
+                        input.value = item[displayKey];
+                        selectedValue = item[valueKey];
+                        input.dataset.value = selectedValue;
+                    }
+                },
+                getValue: () => selectedValue
+            };
+        }
+
+// Dans la fonction loadAllSelects, modifiez le code pour utiliser les combobox :
+        function loadAllSelects() {
+            return Promise.all([
+                fetch('/api/enseignants').then(r => r.json()),
+                fetch('/api/salles').then(r => r.json()),
+                fetch('/api/matieres').then(r => r.json())
+            ]).then(([enseignants, salles, matieres]) => {
+                window.comboboxEns = createCombobox(
+                    'numeroEns',
+                    'numeroEnsDropdown',
+                    enseignants,
+                    'nom_complet',
+                    'numero_ens'
+                );
+
+                window.comboboxSalle = createCombobox(
+                    'numeroSalle',
+                    'numeroSalleDropdown',
+                    salles,
+                    'nom_salle',
+                    'numero_salle'
+                );
+
+                window.comboboxMatiere = createCombobox(
+                    'codeMatiere',
+                    'codeMatiereDropdown',
+                    matieres,
+                    'nom_matiere',
+                    'code_matiere'
+                );
+            });
+        }
+
+
+
+        function updateUserProfile(nomComplet) {
+            // Mettre à jour le nom dans l'avatar
+            const avatarSpan = document.querySelector('.user-avatar span');
+            if (avatarSpan && nomComplet) {
+                avatarSpan.textContent = nomComplet.charAt(0).toUpperCase();
+            }
+
+            // Mettre à jour le nom dans le modal de profil
+            const profileName = document.querySelector('.profile-name');
+            if (profileName) {
+                profileName.textContent = nomComplet || 'Utilisateur';
+            }
+        }
+
+
+        function updateFiltersOptions(seances) {
+            const enseignants = new Set();
+            const salles = new Set();
+            const matieres = new Set();
+
+            seances.forEach(seance => {
+                if (seance.nomEnseignant) enseignants.add(seance.nomEnseignant);
+                if (seance.nomSalle) salles.add(seance.nomSalle);
+                if (seance.nomMatiere) matieres.add(seance.nomMatiere);
+            });
+
+            updateSelectOptions('filterEnseignant', enseignants);
+            updateSelectOptions('filterSalle', salles);
+            updateSelectOptions('filterMatiere', matieres);
+        }
+
+        function updateSelectOptions(selectId, options) {
+            const select = document.getElementById(selectId);
+            const currentValue = select.value;
+
+            select.innerHTML = '<option value="">Tous</option>';
+            Array.from(options).sort().forEach(option => {
+                const optionElement = document.createElement('option');
+                optionElement.value = option;
+                optionElement.textContent = option;
+                select.appendChild(optionElement);
+            });
+
+            if (Array.from(options).includes(currentValue)) {
+                select.value = currentValue;
+            }
+        }
+
+        function applyFilters() {
+            const enseignantFilter = document.getElementById('filterEnseignant').value;
+            const salleFilter = document.getElementById('filterSalle').value;
+            const matiereFilter = document.getElementById('filterMatiere').value;
+
+            const filteredSeances = allSeances.filter(seance => {
+                return (!enseignantFilter || seance.nomEnseignant === enseignantFilter) &&
+                    (!salleFilter || seance.nomSalle === salleFilter) &&
+                    (!matiereFilter || seance.nomMatiere === matiereFilter);
+            });
+
+            displaySeances(filteredSeances);
+        }
+
+        function displaySeances(seances) {
+            calendar.removeAllEvents();
+            seances.forEach(seance => {
+                calendar.addEvent({
+                    id: seance.idSeance,
+                    title: `${seance.nomMatiere}\n${seance.nomEnseignant}\nSalle: ${seance.nomSalle}`,
+                    start: `${seance.date}T${seance.heureDebut}`,
+                    end: `${seance.date}T${seance.heureFin}`,
+                    backgroundColor: getEventColor(seance.nomMatiere),
+                    extendedProps: {
+                        numeroEns: seance.numeroEns,
+                        numeroSalle: seance.numeroSalle,
+                        codeMatiere: seance.codeMatiere,
+                        nomEnseignant: seance.nomEnseignant,
+                        nomMatiere: seance.nomMatiere,
+                        nomSalle: seance.nomSalle
+                    }
+                });
+            });
+        }
+
+        function getEventColor(matiere) {
+            return couleursMatieres[matiere] || "#808080";
+        }
+        // Dans la fonction createSeance du fichier JavaScript
+        function createSeance(seance) {
+            return fetch('/api/seances', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(seance)
+            }).then(response => {
+                if (!response.ok) {
+                    return response.text().then(text => {
+                        throw new Error(text || 'Erreur lors de la création de la séance');
+                    });
+                }
+                return response.json();
+            });
+        }
+
+// Dans la fonction updateSeance du fichier JavaScript
+        function updateSeance(id, seance) {
+            return fetch(`/api/seances/${id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(seance)
+            }).then(response => {
+                if (!response.ok) {
+                    return response.text().then(text => {
+                        throw new Error(text || 'Erreur lors de la mise à jour de la séance');
+                    });
+                }
+                return response.json();
+            });
+        }
+
+// Mettre à jour le gestionnaire d'événements pour le bouton de sauvegarde
+        document.getElementById('saveSeance').addEventListener('click', function() {
+            const form = document.getElementById('seanceForm');
+            const formData = new FormData(form);
+
+            // Vérification si des modifications ont été apportées
+            const hasChanges =
+                formData.get('date') !== form.getAttribute('data-original-date') ||
+                formData.get('heureDebut') !== form.getAttribute('data-original-heure-debut') ||
+                formData.get('heureFin') !== form.getAttribute('data-original-heure-fin') ||
+                formData.get('numeroEns') !== form.getAttribute('data-original-numero-ens') ||
+                formData.get('numeroSalle') !== form.getAttribute('data-original-numero-salle') ||
+                formData.get('codeMatiere') !== form.getAttribute('data-original-code-matiere');
+
+            if (!hasChanges && currentSeance) {
+                modal.hide();
+                return;
+            }
+
+            const date = formData.get('date');
+            const dayOfWeek = new Date(date).getDay();
+
+            if (dayOfWeek === 0 || dayOfWeek === 6) {
+                alert('Les séances ne peuvent pas être créées le weekend');
+                return;
+            }
+
+            if (formData.get('heureDebut') >= formData.get('heureFin')) {
+                alert("L'heure de début ne peut pas être supérieure ou égale à l'heure de fin");
+                return;
+            }
+
+
+            const seance = {
+                date: formData.get('date'),
+                heureDebut: formData.get('heureDebut'),
+                heureFin: formData.get('heureFin'),
+                numeroEns: parseInt(document.getElementById('numeroEns').dataset.value),
+                numeroSalle: parseInt(document.getElementById('numeroSalle').dataset.value),
+                codeMatiere: parseInt(document.getElementById('codeMatiere').dataset.value)
+            };
+
+            const promise = currentSeance
+                ? updateSeance(currentSeance.id, seance)
+                : createSeance(seance);
+
+            promise
+                .then(() => {
+                    modal.hide();
+                    loadSeances();
+                    addNotification('Séance enregistrée avec succès', 'success');
+                })
+                .catch(error => {
+                    console.error('Erreur:', error);
+                    try {
+                        const errorObj = JSON.parse(error.message);
+                        alert(errorObj.error || 'Une erreur est survenue');
+                    } catch (e) {
+                        alert(error.message || 'Une erreur est survenue');
+                    }
+                });
+        });
+
+
+        // function createSeance(seance) {
+        //     return fetch('/api/seances', {
+        //         method: 'POST',
+        //         headers: {
+        //             'Content-Type': 'application/json',
+        //         },
+        //         body: JSON.stringify(seance)
+        //     }).then(response => {
+        //         if (!response.ok) throw new Error('Erreur lors de la création de la séance');
+        //         return response.json();
+        //     });
+        // }
+        //
+        // function updateSeance(id, seance) {
+        //     return fetch(`/api/seances/${id}`, {
+        //         method: 'PUT',
+        //         headers: {
+        //             'Content-Type': 'application/json',
+        //         },
+        //         body: JSON.stringify(seance)
+        //     }).then(response => {
+        //         if (!response.ok) throw new Error('Erreur lors de la mise à jour de la séance');
+        //         return response.json();
+        //     });
+        // }
+
+        function deleteSeance(id) {
+            return fetch(`/api/seances/${id}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            }).then(response => {
+                if (!response.ok) throw new Error('Erreur lors de la suppression de la séance');
+            });
+        }
+
+        function exportToPDF() {
+            const currentView = calendar.view.type;
+            calendar.changeView('timeGridWeek');
+
+            const exportContainer = document.createElement('div');
+            exportContainer.className = 'export-container';
+
+            const header = document.createElement('div');
+            header.className = 'export-header';
+            header.innerHTML = `
+                    <h2>Emploi du Temps</h2>
+                    <p>${new Date().toLocaleDateString('fr-FR', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            })}</p>
+                `;
+            exportContainer.appendChild(header);
+
+            const calendarClone = calendar.el.cloneNode(true);
+            calendarClone.className = 'export-calendar';
+            exportContainer.appendChild(calendarClone);
+
+            document.body.appendChild(exportContainer);
+
+            const opt = {
+                filename: 'emploi_du_temps.pdf',
+                image: { type: 'jpeg', quality: 1 },
+                html2canvas: {
+                    scale: 2,
+                    useCORS: true,
+                    letterRendering: true,
+                    width: exportContainer.offsetWidth,
+                    height: exportContainer.offsetHeight + 50,
+                    onclone: function(clonedDoc) {
+                        const clonedContainer = clonedDoc.querySelector('.export-container');
+                        clonedContainer.style.width = '100%';
+                        clonedContainer.style.maxWidth = '1200px';
+                        clonedContainer.style.margin = '0 auto';
+                        clonedContainer.style.padding = '20px';
+
+                        const calendarElement = clonedContainer.querySelector('.fc');
+                        if (calendarElement) {
+                            calendarElement.style.height = 'auto';
+                            calendarElement.style.minHeight = '500px';
+                        }
+                    }
+                },
+                jsPDF: {
+                    unit: 'px',
+                    format: [1200, 842],
+                    orientation: 'landscape',
+                    compress: true
+                }
+            };
+
+            html2pdf()
+                .set(opt)
+                .from(exportContainer)
+                .save()
+                .then(() => {
+                    document.body.removeChild(exportContainer);
+                    calendar.changeView(currentView);
+                })
+                .catch(err => {
+                    console.error('Erreur lors de la génération du PDF:', err);
+                    alert('Erreur lors de la génération du PDF');
+                    document.body.removeChild(exportContainer);
+                    calendar.changeView(currentView);
+                });
+        }
+        updateDashboardStats();
+        setInterval(updateDashboardStats, 300000);
+
+
+        // Mise à jour périodique des statistiques (toutes les 5 minutes)
+        setInterval(updateDashboardStats, 300000);
+
+        // Gestionnaire du bouton de notifications
+        const notificationButton = document.getElementById('notificationButton');
+        const notificationDropdown = document.getElementById('notificationDropdown');
+
+        notificationButton.addEventListener('click', function(e) {
+            e.stopPropagation();
+            notificationDropdown.classList.toggle('show');
+        });
+
+        // Fermer le dropdown au clic en dehors
+        document.addEventListener('click', function(e) {
+            if (!notificationDropdown.contains(e.target) && !notificationButton.contains(e.target)) {
+                notificationDropdown.classList.remove('show');
+            }
+        });
+        if (!/*[[${session.isAdmin}]]*/ false) {
+            // D'abord récupérer le numéro d'enseignant à partir de l'ID du personnel
+            fetch('/api/enseignants/me')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Erreur lors de la récupération des informations de l\'enseignant');
+                    }
+                    return response.json();
+                })
+                .then(enseignant => {
+                    const numeroEns = enseignant.numero_ens;
+                    if (!numeroEns) {
+                        throw new Error('Numéro d\'enseignant non trouvé');
+                    }
+
+                    // Stocker le numéro d'enseignant pour une utilisation ultérieure
+                    window.numeroEnseignant = numeroEns;
+
+                    // Charger les disponibilités initiales
+                    loadDisponibilites(numeroEns);
+
+                    // Configurer le gestionnaire d'événements du formulaire
+                    document.getElementById('disponibiliteForm').addEventListener('submit', function(e) {
+                        e.preventDefault();
+                        const checkboxes = document.querySelectorAll('input[name="jours"]:checked');
+                        const jours = Array.from(checkboxes).map(cb => cb.value);
+
+                        // Mettre à jour les disponibilités avec le numéro d'enseignant correct
+                        updateDisponibilites(numeroEns, jours);
+                    });
+                })
+                .catch(error => {
+                    console.error('Erreur:', error);
+                    addNotification('Erreur lors de la récupération des informations de l\'enseignant', 'error');
+                });
+
+            function updateDisponibilites(numeroEns, jours) {
+                // Supprimer les disponibilités existantes
+                fetch(`/api/disponibilites/enseignant/${numeroEns}`)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! status: ${response.status}`);
+                        }
+                        return response.json();
+                    })
+                    .then(disponibilites => {
+                        if (!Array.isArray(disponibilites)) {
+                            disponibilites = [];
+                        }
+
+                        // Supprimer toutes les disponibilités existantes
+                        const deletePromises = disponibilites.map(dispo =>
+                            fetch(`/api/disponibilites/enseignant/${numeroEns}/jour/${dispo.jour}`, {
+                                method: 'DELETE'
+                            }).then(response => {
+                                if (!response.ok) {
+                                    throw new Error(`Erreur lors de la suppression: ${response.status}`);
+                                }
+                            })
+                        );
+
+                        return Promise.all(deletePromises);
+                    })
+                    .then(() => {
+                        // Créer les nouvelles disponibilités
+                        const createPromises = jours.map(jour =>
+                            fetch('/api/disponibilites', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify({
+                                    numeroEns: numeroEns,
+                                    jour: jour
+                                })
+                            }).then(response => {
+                                if (!response.ok) {
+                                    throw new Error(`Erreur lors de la création: ${response.status}`);
+                                }
+                                return response.json();
+                            })
+                        );
+
+                        return Promise.all(createPromises);
+                    })
+                    .then(() => {
+                        addNotification('Disponibilités mises à jour avec succès', 'success');
+                        loadDisponibilites(numeroEns);
+                    })
+                    .catch(error => {
+                        console.error('Erreur:', error);
+                        addNotification(`Erreur lors de la mise à jour des disponibilités: ${error.message}`, 'error');
+                    });
+            }
+
+            function loadDisponibilites(numeroEns) {
+                fetch(`/api/disponibilites/enseignant/${numeroEns}`)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! status: ${response.status}`);
+                        }
+                        return response.json();
+                    })
+                    .then(disponibilites => {
+                        if (!Array.isArray(disponibilites)) {
+                            disponibilites = [];
+                        }
+
+                        // Mettre à jour les cases à cocher
+                        document.querySelectorAll('input[name="jours"]').forEach(checkbox => {
+                            checkbox.checked = disponibilites.some(d => d.jour === checkbox.value);
+                        });
+                    })
+                    .catch(error => {
+                        console.error('Erreur lors du chargement des disponibilités:', error);
+                        addNotification(`Erreur lors du chargement des disponibilités: ${error.message}`, 'error');
+                    });
+            }
+        }
+
+
+        // Exemple de notification
+        setTimeout(() => {
+            addNotification('Bienvenue dans votre emploi du temps !', 'info');
+        }, 2000);
+    });
+</script>
+<script>
+    // Gestionnaire du menu de profil
+    document.getElementById('profileTrigger').addEventListener('click', function(e) {
+        e.stopPropagation();
+        const dropdown = document.getElementById('profileDropdown');
+        dropdown.classList.toggle('show');
+    });
+
+    // Fermer le menu au clic en dehors
+    document.addEventListener('click', function(e) {
+        const dropdown = document.getElementById('profileDropdown');
+        if (!dropdown.contains(e.target) && !e.target.closest('#profileTrigger')) {
+            dropdown.classList.remove('show');
+        }
+    });
+
+    // Gestionnaire du thème
+    let isDarkMode = false;
+    document.getElementById('themeToggle').addEventListener('click', function() {
+        isDarkMode = !isDarkMode;
+        document.body.setAttribute('data-theme', isDarkMode ? 'dark' : 'light');
+        this.innerHTML = isDarkMode ?
+            '<i class="fas fa-sun"></i> Thème clair' :
+            '<i class="fas fa-moon"></i> Thème sombre';
+    });
+
+    // Animation de l'avatar
+    const avatar = document.querySelector('.profile-avatar');
+    avatar.addEventListener('mouseover', function() {
+        this.style.transform = 'scale(1.05) rotate(5deg)';
+    });
+    avatar.addEventListener('mouseout', function() {
+        this.style.transform = 'scale(1) rotate(0deg)';
+    });
+</script>
+</body>
+</html>

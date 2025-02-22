@@ -1,0 +1,143 @@
+/* Style principal du calendrier */
+#calendar {
+    margin: 20px auto;
+    max-width: 1200px;
+    background: #ffffff;
+    padding: 24px;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+}
+
+/* Barre d'outils du calendrier */
+.fc-header-toolbar {
+    margin-bottom: 1.5em !important;
+    padding: 12px;
+    background: #f4f4f4;
+    border-radius: 8px;
+}
+
+.fc-toolbar-title {
+    font-size: 1.7em !important;
+    font-weight: 700 !important;
+    color: #3d3d3d;
+}
+
+/* Boutons du calendrier */
+.fc-button {
+    background-color: #9c27b0 !important;
+    border-color: #9c27b0 !important;
+    text-transform: capitalize !important;
+    font-weight: 600;
+    border-radius: 6px;
+}
+
+.fc-button:hover {
+    background-color: #7b1fa2 !important;
+    border-color: #6a1b9a !important;
+}
+
+.fc-button-active {
+    background-color: #6a1b9a !important;
+    border-color: #4a148c !important;
+}
+
+/* Style des événements */
+.fc-event {
+    cursor: pointer;
+    padding: 4px 6px;
+    margin: 2px 0;
+    border-radius: 6px;
+    background-color: #ff9800;
+    color: #ffffff;
+    font-size: 0.95em;
+    white-space: pre-line;
+    transition: all 0.2s ease-in-out;
+}
+
+.fc-event:hover {
+    opacity: 0.85;
+    transform: scale(1.02);
+}
+
+/* Grille horaire */
+.fc-timegrid-slot {
+    height: 45px !important;
+}
+
+.fc-timegrid-axis {
+    padding: 12px !important;
+    font-weight: 600;
+}
+
+/* Bordures et couleurs générales */
+.fc-theme-standard td, .fc-theme-standard th {
+    border-color: #d1d1d1;
+}
+
+.fc-day-today {
+    background-color: rgba(255, 152, 0, 0.1) !important;
+}
+
+.fc-timegrid-now-indicator-line {
+    border-color: #e53935;
+}
+
+.fc-timegrid-now-indicator-arrow {
+    border-color: #e53935;
+}
+
+/* Modals */
+.modal-content {
+    border-radius: 12px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.modal-header {
+    background-color: #f4f4f4;
+    border-radius: 12px 12px 0 0;
+    font-weight: 600;
+}
+
+/* Champs de formulaire */
+.form-control:focus, .form-select:focus {
+    border-color: #9c27b0;
+    box-shadow: 0 0 0 0.2rem rgba(156, 39, 176, 0.25);
+}
+
+/* Boutons */
+.btn-primary {
+    background-color: #9c27b0;
+    border-color: #9c27b0;
+    font-weight: 600;
+    border-radius: 6px;
+}
+
+.btn-primary:hover {
+    background-color: #7b1fa2;
+    border-color: #6a1b9a;
+}
+
+.btn-secondary {
+    background-color: #757575;
+    border-color: #757575;
+    font-weight: 600;
+    border-radius: 6px;
+}
+
+.btn-secondary:hover {
+    background-color: #616161;
+    border-color: #424242;
+}
+/* Ajouter dans votre fichier CSS ou dans une balise style */
+#exportPDF {
+    transition: all 0.3s ease;
+}
+
+#exportPDF:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+.fas {
+    margin-right: 8px;
+}

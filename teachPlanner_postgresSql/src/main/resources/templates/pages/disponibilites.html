@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestion des Disponibilités</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .disponibilite-card {
+            transition: all 0.3s ease;
+        }
+        .disponibilite-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .jour-checkbox {
+            display: none;
+        }
+        .jour-label {
+            cursor: pointer;
+            padding: 1rem;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+        .jour-checkbox:checked + .jour-label {
+            background-color: #003366;
+            color: white;
+            border-color: #003366;
+        }
+    </style>
+</head>
+<body class="bg-light">
+<div class="container py-5">
+    <h1 class="text-center mb-5">Mes Disponibilités</h1>
+
+    <div class="row justify-content-center mb-5">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title mb-4">Sélectionnez vos jours de disponibilité</h5>
+                    <form id="disponibiliteForm" class="row g-3">
+                        <div class="col" th:each="jour : ${T(com.ut2j.model.Disponibilite.JourSemaine).values()}">
+                            <input type="checkbox" th:id="${jour}" th:value="${jour}"
+                                   class="jour-checkbox" name="jours">
+                            <label th:for="${jour}" class="jour-label w-100"
+                                   th:text="${#strings.capitalize(#strings.toLowerCase(jour))}">
+                                Jour
+                            </label>
+                        </div>
+                        <div class="col-12 text-center mt-4">
+                            <button type="submit" class="btn btn-primary px-4">
+                                Enregistrer
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row" id="disponibilitesList">
+        <!-- Les disponibilités seront affichées ici dynamiquement -->
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const numeroEns = /* [[${session.numeroEns}]] */; // Récupérer depuis la session
+        loadDisponibilites();
+
+        document.getElementById('disponibiliteForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const checkboxes = document.querySelectorAll('input[name="jours"]:checked');
+            const jours = Array.from(checkboxes).map(cb => cb.value);
+
+            // Supprimer toutes les disponibilités existantes
+            fetch(`/api/disponibilites/enseignant/${numeroEns}`)
+                .then(response => response.json())
+                .then(disponibilites => {
+                    disponibilites.forEach(dispo => {
+                        fetch(`/api/disponibilites/enseignant/${numeroEns}/jour/${dispo.jour}`, {
+                            method: 'DELETE'
+                        });
+                    });
+
+                    // Ajouter les nouvelles disponibilités
+                    jours.forEach(jour => {
+                        fetch('/api/disponibilites', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                numeroEns: numeroEns,
+                                jour: jour
+                            })
+                        });
+                    });
+
+                    setTimeout(loadDisponibilites, 500);
+                });
+        });
+
+        function loadDisponibilites() {
+            fetch(`/api/disponibilites/enseignant/${numeroEns}`)
+                .then(response => response.json())
+                .then(disponibilites => {
+                    // Mettre à jour les checkboxes
+                    document.querySelectorAll('input[name="jours"]').forEach(checkbox => {
+                        checkbox.checked = disponibilites.some(d => d.jour === checkbox.value);
+                    });
+                });
+        }
+    });
+</script>
+</body>
+</html>
