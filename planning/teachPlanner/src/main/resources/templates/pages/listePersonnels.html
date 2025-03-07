@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Liste des Personnels - UT2J</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --ut2j-blue: #003366;
+            --ut2j-light-blue: #004d99;
+        }
+
+        body {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            font-family: 'Arial', sans-serif;
+            min-height: 100vh;
+        }
+
+        .container {
+            margin-top: 50px;
+            margin-bottom: 50px;
+        }
+
+        .page-title {
+            color: var(--ut2j-blue);
+            margin-bottom: 30px;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .card {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            margin-bottom: 30px;
+            border-top: 5px solid var(--ut2j-blue);
+        }
+
+        .table {
+            margin-bottom: 0;
+        }
+
+        .btn-primary {
+            background-color: var(--ut2j-blue);
+            border-color: var(--ut2j-blue);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--ut2j-light-blue);
+            border-color: var(--ut2j-light-blue);
+        }
+
+        .icon-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 50px;
+            height: 50px;
+            background-color: var(--ut2j-blue);
+            border-radius: 50%;
+            margin: 0 auto 20px;
+        }
+
+        .icon-container i {
+            color: white;
+            font-size: 24px;
+        }
+
+        .alert {
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        /* Style pour le fond du modal */
+        .modal-backdrop.show {
+            background-color: rgba(0, 0, 0, 0.5); /* Légère transparence pour l'arrière-plan */
+        }
+
+        /* Style de la fenêtre du modal */
+        .modal-dialog {
+            max-width: 600px; /* Largeur maximale de la fenêtre */
+            margin: 30px auto; /* Centrer le modal à l'écran */
+        }
+
+        /* Style du contenu du modal */
+        .modal-content {
+            border-radius: 8px; /* Bords arrondis */
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Ombre douce autour du modal */
+            background-color: #ffffff; /* Fond blanc pour le modal */
+        }
+
+        /* Style de l'en-tête du modal */
+        .modal-header {
+            background-color: #003366; /* Bleu UT2J */
+            color: #ffffff; /* Texte blanc */
+            border-bottom: 1px solid #ddd; /* Séparation sous l'en-tête */
+        }
+
+        .modal-title {
+            font-weight: bold;
+        }
+
+        .btn-close {
+            background-color: transparent;
+            border: none;
+            color: #ffffff;
+        }
+
+        /* Style du corps du modal */
+        .modal-body {
+            padding: 20px;
+            font-size: 16px; /* Taille de texte confortable */
+        }
+
+        .modal-body .form-label {
+            font-weight: bold; /* Mettre en gras les labels */
+        }
+
+        /* Style du pied de modal */
+        .modal-footer {
+            border-top: 1px solid #ddd; /* Séparation en haut du pied */
+            padding: 15px;
+            background-color: #f8f9fa; /* Fond gris clair */
+        }
+
+        .btn-secondary {
+            background-color: #e0e0e0; /* Fond gris pour le bouton Annuler */
+            border: none;
+        }
+
+        .btn-primary {
+            background-color: #003366; /* Bleu UT2J */
+            border: none;
+        }
+
+        .btn-primary:hover {
+            background-color: #004d99; /* Bleu clair au survol */
+        }
+
+        .btn-secondary:hover {
+            background-color: #c0c0c0; /* Gris clair au survol */
+        }
+    </style>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/main.min.css' rel='stylesheet'><link href="/styles/seance2.css" rel='stylesheet'>
+    <link href="/styles/style.css" rel='stylesheet'>
+</head>
+
+<body>
+<div th:replace="fragments/navbar.html:: body"></div>
+<div class="container">
+    <h1 class="page-title">
+        <i class="fas fa-users me-2"></i>Liste des Personnels
+    </h1>
+
+    <div class="card">
+        <div class="icon-container">
+            <i class="fas fa-list"></i>
+        </div>
+
+        <div id="alertContainer"></div>
+
+        <div class="d-flex justify-content-between mb-4">
+            <h2 class="h4 text-primary">Tous les personnels</h2>
+            <a href="/personnels/nouveau" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i>Ajouter un personnel
+            </a>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-striped table-hover">
+                <thead class="table-light">
+                <tr>
+                    <th>ID</th>
+                    <th>Email</th>
+                    <th>Rôle</th>
+                    <th>Actions</th>
+                </tr>
+                </thead>
+                <tbody id="personnelsTableBody">
+                <!-- Les données seront injectées ici dynamiquement -->
+                </tbody>
+            </table>
+        </div>
+
+        <div id="loading" class="text-center py-4">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Chargement...</span>
+            </div>
+            <p class="mt-2">Chargement des données...</p>
+        </div>
+
+        <div id="noData" class="alert alert-info text-center d-none">
+            <i class="fas fa-info-circle me-2"></i>Aucun personnel n'a été trouvé dans la base de données.
+        </div>
+    </div>
+    <!-- Ajout du modal de modification -->
+    <div class="modal fade" id="editPersonnelModal" tabindex="-1" aria-labelledby="editPersonnelModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editPersonnelModalLabel">Modifier le personnel</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editPersonnelForm">
+                        <input type="hidden" id="editPersonnelId">
+                        <div class="mb-3">
+                            <label for="editPersonnelEmail" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="editPersonnelEmail" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editPersonnelRole" class="form-label">Rôle</label>
+                            <select class="form-select" id="editPersonnelRole">
+                                <option value="ADMIN">ADMIN</option>
+                                <option value="ENSEIGNANT">ENSEIGNANT</option>
+                                <option value="ETUDIANT">ETUDIANT</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="button" class="btn btn-primary" onclick="savePersonnelChanges()">Enregistrer</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const tableBody = document.getElementById('personnelsTableBody');
+        const loadingIndicator = document.getElementById('loading');
+        const noDataAlert = document.getElementById('noData');
+
+        // Fonction pour charger les personnels
+        async function loadPersonnels() {
+            try {
+                const response = await fetch('/api/personnels');
+
+                if (!response.ok) {
+                    throw new Error('Erreur lors du chargement des personnels');
+                }
+
+                const personnels = await response.json();
+                loadingIndicator.classList.add('d-none');
+
+                if (personnels.length === 0) {
+                    noDataAlert.classList.remove('d-none');
+                    return;
+                }
+
+                // Afficher les personnels dans le tableau
+                personnels.forEach(personnel => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${personnel.idperso}</td>
+                        <td>${personnel.mail}</td>
+                        <td>
+                            <span class="badge ${getBadgeColor(personnel.role)}">${personnel.role}</span>
+                        </td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+
+                                <button class="btn btn-outline-primary" id="editbutton-${personnel.idperso}" onclick="openEditModal(${personnel.idperso}, '${personnel.mail}', '${personnel.role}')">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn btn-outline-danger" onclick="deletePersonnel(${personnel.idperso})">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+            } catch (error) {
+                console.error('Erreur:', error);
+                loadingIndicator.classList.add('d-none');
+                showAlert('Erreur lors du chargement des personnels: ' + error.message, 'danger');
+            }
+        }
+
+        // Fonction pour attribuer une couleur au badge en fonction du rôle
+        function getBadgeColor(role) {
+            switch(role) {
+                case 'ADMIN':
+                    return 'bg-danger';
+                case 'ENSEIGNANT':
+                    return 'bg-success';
+                case 'ETUDIANT':
+                    return 'bg-primary';
+                default:
+                    return 'bg-secondary';
+            }
+        }
+
+        // Fonction pour supprimer un personnel
+        window.deletePersonnel = async function(id) {
+            if (confirm('Êtes-vous sûr de vouloir supprimer ce personnel ? Cette action est irréversible.')) {
+                try {
+                    const response = await fetch(`/api/personnels/${id}`, {
+                        method: 'DELETE'
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Erreur lors de la suppression');
+                    }
+
+                    showAlert('Personnel supprimé avec succès', 'success');
+                    setTimeout(() => {
+                        location.reload();
+                    }, 2000);
+                } catch (error) {
+                    console.error('Erreur:', error);
+                    showAlert('Erreur lors de la suppression: ' + error.message, 'danger');
+                }
+            }
+        };
+
+        // Fonction pour afficher des alertes
+        function showAlert(message, type) {
+            const alertContainer = document.getElementById('alertContainer');
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type} alert-dismissible fade show`;
+            alert.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            `;
+            alertContainer.appendChild(alert);
+
+            // Auto-dismiss après 5 secondes
+            setTimeout(() => {
+                const bsAlert = new bootstrap.Alert(alert);
+                bsAlert.close();
+            }, 5000);
+        }
+
+        // Fonction pour ouvrir le modal de modification
+        window.openEditModal = function(id, email, role) {
+            document.getElementById('editPersonnelId').value = id;
+            document.getElementById('editPersonnelEmail').value = email;
+            document.getElementById('editPersonnelRole').value = role;
+            const editModal = new bootstrap.Modal(document.getElementById('editPersonnelModal'));
+            editModal.show();
+        }
+
+        // Fonction pour sauvegarder les changements
+        async function savePersonnelChanges() {
+            const id = document.getElementById('editPersonnelId').value;
+            const email = document.getElementById('editPersonnelEmail').value;
+            const role = document.getElementById('editPersonnelRole').value;
+
+            try {
+                const response = await fetch(`/api/personnels/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ mail: email, role: role })
+                });
+
+                if (!response.ok) throw new Error('Erreur lors de la mise à jour');
+
+                showAlert('Personnel mis à jour avec succès', 'success');
+                setTimeout(() => location.reload(), 2000);
+            } catch (error) {
+                console.error('Erreur:', error);
+                showAlert('Erreur lors de la mise à jour: ' + error.message, 'danger');
+            }
+        }
+
+        // Charger les personnels au chargement de la page
+        loadPersonnels();
+    });
+</script>
+
+</body>
+</html>

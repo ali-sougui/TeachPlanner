@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.w3.org/1999/xhtml"> <!-- Remplace "en" par "fr" pour indiquer que le contenu est en français -->
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestion des Départements</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/main.min.css' rel='stylesheet'><link href="/styles/seance2.css" rel='stylesheet'>
+    <link href="/styles/style.css" rel='stylesheet'>
+</head>
+
+<body>
+<div th:replace="fragments/navbar.html:: body"></div>
+
+<div class="container mt-5">
+    <h1 class="text-center mb-4">Gestion des Départements</h1>
+
+    <!-- Barre de recherche avec un label pour l'accessibilité -->
+    <div class="row mb-3">
+        <div class="col-md-6 offset-md-3">
+            <label for="search-input" class="visually-hidden">Rechercher un département</label>
+            <input type="text" id="search-input" class="form-control" placeholder="Rechercher un département..." > <!---onkeyup="searchTable()"--->
+        </div>
+    </div>
+
+    <!-- Tableau des départements -->
+    <table class="table table-hover table-striped">
+
+        <thead class="table-dark">
+        <tr>
+            <th onclick="sortTable(0)" style="cursor: pointer;">ID <i class="bi bi-arrow-down-up"></i></th>
+            <th onclick="sortTable(1)" style="cursor: pointer;">Nom du Département <i class="bi bi-arrow-down-up"></i></th>
+            <th>Actions</th>
+        </tr>
+        </thead>
+
+        <tbody id="department-table">
+        <!-- Les données des départements seront ajoutées ici dynamiquement -->
+        </tbody>
+    </table>
+
+    <!-- Bouton pour ajouter un nouveau département -->
+    <div class="text-center mt-4">
+        <a href="/departements/add" class="btn btn-primary">
+            <i class="bi bi-plus"></i> Ajouter un Nouveau Département
+        </a>
+    </div>
+
+</div>
+<!-- Modale pour modifier un département -->
+<div class="modal fade" id="editDepartmentModal" tabindex="-1" aria-labelledby="editDepartmentModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editDepartmentModalLabel">Modifier un Département</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="mb-3">
+                        <label for="edit-department-id" class="form-label">ID du Département</label>
+                        <input type="text" class="form-control" id="edit-department-id" disabled>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit-department-name" class="form-label">Nom du Département</label>
+                        <input type="text" class="form-control" id="edit-department-name">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <button type="button" id="save-department-changes" class="btn btn-primary">Enregistrer</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Section pour les alertes -->
+<div id="alerts" class="mt-3">
+    <!-- Les messages d'alertes seront insérés ici -->
+</div>
+
+<!-- Inclure Bootstrap JS -->
+<script src="/scripts/departements.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Inclure le fichier JavaScript -->
+
+</body>
+</html>
+
+

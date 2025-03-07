@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestion des Salles</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .table-container {
+            background: #ffffff;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0px 2px 10px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/main.min.css' rel='stylesheet'><link href="/styles/seance2.css" rel='stylesheet'>
+    <link href="/styles/style.css" rel='stylesheet'>
+</head>
+
+<body>
+<div th:replace="fragments/navbar.html:: body"></div>
+<div class="container mt-5">
+    <h1 class="mb-4 text-center">Gestion des Salles</h1>
+    <!-- Zone de recherche -->
+    <div class="mb-4">
+        <input type="text" id="searchInput" class="form-control" placeholder="Rechercher une salle..." onkeyup="searchTable()">
+    </div>
+    <!-- Table pour afficher les salles -->
+    <div class="table-container">
+        <table class="table table-hover">
+            <thead class="table-dark">
+            <tr>
+                <th>Numéro <i class="fas fa-sort" onclick="sortTable(0)"></i></th>
+                <th>Nom <i class="fas fa-sort" onclick="sortTable(1)"></i></th>
+                <th>Type <i class="fas fa-sort" onclick="sortTable(2)"></i></th>
+                <th>Actions</th>
+            </tr>
+            </thead>
+            <tbody id="sallesTable">
+            <tr th:each="salle : ${salles}">
+                <td th:text="${salle.numSalle}"></td>
+                <td th:text="${salle.nomSalle}"></td>
+                <td th:text="${salle.typeSalle}"></td>
+                <td>
+                    <!-- Bouton pour modifier la salle -->
+                    <button class="btn btn-sm btn-warning modifier-salle-btn"
+                            th:data-id="${salle.numSalle}"
+                            th:data-nom="${salle.nomSalle}"
+                            th:data-type="${salle.typeSalle}">
+                        <i class="fas fa-edit"></i> Modifier
+                    </button>
+                    <form th:action="@{/salles/supprimer/{id}(id=${salle.numSalle})}" method="post" style="display:inline;">
+                        <button type="submit" class="btn btn-sm btn-danger">
+                            <i class="fas fa-trash"></i> Supprimer
+                        </button>
+                    </form>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+    <!-- Bouton pour ajouter une nouvelle salle -->
+    <div class="mt-4 text-end">
+        <a th:href="@{/salles/nouveau}" class="btn btn-primary btn-lg">
+            <i class="fas fa-plus"></i> Ajouter une Nouvelle Salle
+        </a>
+    </div>
+</div>
+
+<!-- Modal de modification -->
+<div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editModalLabel">Modifier la Salle</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editForm">
+                    <div class="mb-3">
+                        <label for="editNumSalle" class="form-label">Numéro de Salle</label>
+                        <input type="text" id="editNumSalle" class="form-control" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editNomSalle" class="form-label">Nom de Salle</label>
+                        <input type="text" id="editNomSalle" class="form-control">
+                    </div>
+                    <div class="mb-3">
+                        <label for="editTypeSalle" class="form-label">Type de Salle</label>
+                        <select id="editTypeSalle" class="form-select">
+                            <option th:each="type : ${T(org.univ.projet_tutore.teachPlanner.model.TypeSalle).values()}"
+                                    th:value="${type}" th:text="${type}"></option>
+                        </select>
+                    </div>
+                    <button type="button" class="btn btn-primary" onclick="saveChanges()">Enregistrer</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function searchTable() {
+        const input = document.getElementById("searchInput");
+        const filter = input.value.toLowerCase();
+        const rows = document.querySelectorAll("#sallesTable tr");
+        rows.forEach(row => {
+            const cells = row.querySelectorAll("td");
+            const matches = Array.from(cells).some(cell => cell.innerText.toLowerCase().includes(filter));
+            row.style.display = matches ? "" : "none";
+        });
+    }
+
+    function sortTable(columnIndex) {
+        const rows = Array.from(document.querySelectorAll("#sallesTable tr"));
+        const sorted = rows.sort((a, b) => {
+            const cellA = a.cells[columnIndex]?.innerText.toLowerCase() || "";
+            const cellB = b.cells[columnIndex]?.innerText.toLowerCase() || "";
+            return cellA.localeCompare(cellB);
+        });
+        const tableBody = document.getElementById("sallesTable");
+        sorted.forEach(row => tableBody.appendChild(row));
+    }
+
+    function openModal(id, nom, type) {
+        const modal = new bootstrap.Modal(document.getElementById('editModal'));
+        document.getElementById('editNumSalle').value = id;
+        document.getElementById('editNomSalle').value = nom;
+        document.getElementById('editTypeSalle').value = type;
+        modal.show();
+    }
+
+    function saveChanges() {
+        const numSalle = document.getElementById('editNumSalle').value;
+        const nomSalle = document.getElementById('editNomSalle').value;
+        const typeSalle = document.getElementById('editTypeSalle').value;
+
+        fetch('/salles/modifier/' + numSalle, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: `nom=${encodeURIComponent(nomSalle)}&type=${encodeURIComponent(typeSalle)}`
+        }).then(response => {
+            if (response.ok) {
+                alert("Modifications sauvegardées !");
+                location.reload();
+            } else {
+                alert("Erreur lors de la sauvegarde !");
+            }
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        document.querySelectorAll('.modifier-salle-btn').forEach(button => {
+            button.addEventListener('click', () => openModal(button.dataset.id, button.dataset.nom, button.dataset.type));
+        });
+    });
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

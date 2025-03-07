@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestion des Enseignants - UT2J</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
+</head>
+<body>
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Gestion des Enseignants</h1>
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addEnseignantModal">
+      <i class="bi bi-plus-circle me-2"></i>Nouvel Enseignant
+    </button>
+  </div>
+
+  <div class="table-responsive">
+    <table class="table table-hover">
+      <thead>
+      <tr>
+        <th>Nom</th>
+        <th>Prénom</th>
+        <th>Email</th>
+        <th>Actions</th>
+      </tr>
+      </thead>
+      <tbody id="enseignantsList">
+      <!-- Les enseignants seront ajoutés ici dynamiquement -->
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Modal d'ajout d'enseignant -->
+<div class="modal fade" id="addEnseignantModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Ajouter un Enseignant</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form id="enseignantForm">
+          <div class="mb-3">
+            <label for="nom" class="form-label">Nom</label>
+            <input type="text" class="form-control" id="nom" required>
+          </div>
+          <div class="mb-3">
+            <label for="prenom" class="form-label">Prénom</label>
+            <input type="text" class="form-control" id="prenom" required>
+          </div>
+          <div class="mb-3">
+            <label for="email" class="form-label">Email</label>
+            <input type="email" class="form-control" id="email" required>
+          </div>
+          <div class="mb-3">
+            <label for="password" class="form-label">Mot de passe</label>
+            <input type="password" class="form-control" id="password" required>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+        <button type="button" class="btn btn-primary" id="saveEnseignant">Enregistrer</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    loadEnseignants();
+
+    document.getElementById('saveEnseignant').addEventListener('click', function() {
+      const formData = new FormData();
+      formData.append('nom', document.getElementById('nom').value);
+      formData.append('prenom', document.getElementById('prenom').value);
+      formData.append('email', document.getElementById('email').value);
+      formData.append('password', document.getElementById('password').value);
+
+      fetch('/admin/enseignants/create', {
+        method: 'POST',
+        body: formData
+      })
+              .then(response => response.json())
+              .then(data => {
+                if (data.error) {
+                  alert(data.error);
+                } else {
+                  loadEnseignants();
+                  bootstrap.Modal.getInstance(document.getElementById('addEnseignantModal')).hide();
+                  document.getElementById('enseignantForm').reset();
+                }
+              })
+              .catch(error => {
+                console.error('Erreur:', error);
+                alert('Erreur lors de la création de l\'enseignant');
+              });
+    });
+  });
+
+  function loadEnseignants() {
+    fetch('/api/enseignants')
+            .then(response => response.json())
+            .then(enseignants => {
+              const tbody = document.getElementById('enseignantsList');
+              tbody.innerHTML = enseignants.map(enseignant => `
+                        <tr>
+                            <td>${enseignant.nomEns}</td>
+                            <td>${enseignant.prenomEns}</td>
+                            <td>${enseignant.personnel.mail}</td>
+                            <td>
+                                <button class="btn btn-danger btn-sm"
+                                        onclick="deleteEnseignant(${enseignant.numeroEns})">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `).join('');
+            })
+            .catch(error => {
+              console.error('Erreur:', error);
+              alert('Erreur lors du chargement des enseignants');
+            });
+  }
+
+  function deleteEnseignant(id) {
+    if (confirm('Êtes-vous sûr de vouloir supprimer cet enseignant ?')) {
+      fetch(`/admin/enseignants/${id}`, {
+        method: 'DELETE'
+      })
+              .then(response => response.json())
+              .then(data => {
+                if (data.error) {
+                  alert(data.error);
+                } else {
+                  loadEnseignants();
+                }
+              })
+              .catch(error => {
+                console.error('Erreur:', error);
+                alert('Erreur lors de la suppression de l\'enseignant');
+              });
+    }
+  }
+</script>
+</body>
+</html>

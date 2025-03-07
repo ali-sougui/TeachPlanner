@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Étudiants du Groupe</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/main.min.css' rel='stylesheet'><link href="/styles/seance2.css" rel='stylesheet'>
+    <link href="/styles/style.css" rel='stylesheet'>
+</head>
+
+<body>
+<div th:replace="fragments/navbar.html:: body"></div>
+
+<div class="container mt-4">
+    <h1 th:if="${groupe != null}">Etudiants du Groupe : <span th:text="${groupe.nom}"></span></h1>
+    <h1 th:if="${groupe == null}" style="color: red;">Groupe introuvable</h1>
+
+
+    <div class="table-responsive">
+        <table class="table table-bordered table-hover">
+            <thead class="table-dark">
+            <tr>
+                <th>ID</th>
+                <th>Nom</th>
+                <th>Prénom</th>
+                <th>Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="etudiant : ${etudiants}">
+                <td th:text="${etudiant.numeroEtudiant}">1</td>
+                <td th:text="${etudiant.nom}">Nom</td>
+                <td th:text="${etudiant.prenom}">Prénom</td>
+
+                <td>
+                    <button class="btn btn-danger btn-sm" th:onclick="|supprimerEtudiant(${etudiant.numeroEtudiant})|">
+                        <i class="fas fa-trash"></i> Supprimer
+                    </button>
+
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Bouton pour ajouter un étudiant -->
+    <button class="btn btn-primary mt-3" data-bs-toggle="modal" data-bs-target="#addEtudiantModal"
+            th:attr="data-groupe-id=${groupe.id}">
+        <i class="fas fa-user-plus"></i> Ajouter un Étudiant
+    </button>
+
+</div>
+
+<!-- Modal d'ajout d'étudiant -->
+<div class="modal fade" id="addEtudiantModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Ajouter un Étudiant au Groupe</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="etudiantForm">
+                    <div class="mb-3">
+                        <label for="etudiantSelect" class="form-label">Sélectionnez un étudiant</label>
+                        <select class="form-select" id="etudiantSelect" required>
+                            <option value="" selected>-- Choisir un étudiant --</option>
+                            <!-- Étudiants ajoutés dynamiquement ici -->
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <button type="button" class="btn btn-primary" id="addEtudiantToGroupe">Ajouter</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+    const groupeId = document.querySelector('[data-groupe-id]').getAttribute('data-groupe-id');
+
+    document.getElementById('saveEtudiant').addEventListener('click', function () {
+        const nom = document.getElementById('nom').value;
+        const prenom = document.getElementById('prenom').value;
+        const email = document.getElementById('email').value;
+
+        fetch(`/api/etudiants`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ nom, prenom, email, groupeId })
+        })
+        .then(response => {
+            if (!response.ok) throw new Error('Erreur lors de l’ajout');
+            return response.json();
+        })
+        .then(() => location.reload())
+        .catch(error => alert(error.message));
+    });
+});
+
+document.addEventListener("DOMContentLoaded", function () {
+    const groupeId = document.querySelector('[data-groupe-id]').getAttribute('data-groupe-id');
+    const etudiantSelect = document.getElementById("etudiantSelect");
+
+    // 🟢 Chargement de la liste des étudiants disponibles
+    function loadEtudiants() {
+        fetch("/api/etudiants") // Vérifie bien que cette API fonctionne dans Postman !
+            .then(response => response.json())
+            .then(etudiants => {
+                console.log("📌 Étudiants récupérés :", etudiants);
+                etudiantSelect.innerHTML = '<option value="" selected>-- Choisir un étudiant --</option>';
+                etudiants.forEach(etudiant => {
+                    let option = document.createElement("option");
+                    option.value = etudiant.numeroEtudiant;
+                    option.textContent = `${etudiant.nom} ${etudiant.prenom}`;
+                    etudiantSelect.appendChild(option);
+                });
+            })
+            .catch(error => {
+                console.error("Erreur lors du chargement des étudiants :", error);
+                alert("Impossible de charger la liste des étudiants !");
+            });
+    }
+
+    // 🟢 Ouvrir le modal et charger les étudiants
+    document.querySelector('[data-bs-target="#addEtudiantModal"]').addEventListener("click", loadEtudiants);
+
+    // 🟢 Ajouter un étudiant au groupe
+    document.getElementById("addEtudiantToGroupe").addEventListener("click", function () {
+        const etudiantId = etudiantSelect.value;
+
+        if (!etudiantId) {
+            alert("Veuillez sélectionner un étudiant !");
+            return;
+        }
+
+        fetch(`/api/etudiants/${etudiantId}/assign-groupe/${groupeId}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" }
+        })
+        .then(response => {
+            if (!response.ok) throw new Error("Erreur lors de l'ajout au groupe");
+            return response.json();
+        })
+        .then(() => {
+
+            location.reload();
+        })
+        .catch(error => {
+            console.error("Erreur lors de l'ajout :", error);
+            alert("Erreur lors de l'ajout !");
+        });
+    });
+});
+
+
+    function supprimerEtudiant(id) {
+        if (confirm('Êtes-vous sûr de vouloir supprimer cet étudiant ?')) {
+            fetch(`/api/etudiants/${id}`, { method: 'DELETE' })
+            .then(() => location.reload())
+            .catch(error => alert('Erreur lors de la suppression'));
+        }
+    }
+</script>
+
+</body>
+</html>

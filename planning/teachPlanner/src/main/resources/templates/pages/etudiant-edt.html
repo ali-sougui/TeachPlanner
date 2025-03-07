@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mon Emploi du Temps - UT2J</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/main.min.css' rel='stylesheet'>
+  <link href="/styles/style.css" rel='stylesheet'>
+  <link href="/styles/seance2.css" rel='stylesheet'>
+  <!--  <style>-->
+  <!--    :root {-->
+  <!--      &#45;&#45;ut2j-blue: #003366;-->
+  <!--    }-->
+
+  <!--    .fc-event {-->
+  <!--      cursor: pointer;-->
+  <!--      transition: transform 0.2s;-->
+  <!--    }-->
+
+  <!--    .fc-event:hover {-->
+  <!--      transform: scale(1.02);-->
+  <!--    }-->
+
+  <!--    .fc-toolbar-title {-->
+  <!--      color: var(&#45;&#45;ut2j-blue);-->
+  <!--    }-->
+
+  <!--    .fc-button-primary {-->
+  <!--      background-color: var(&#45;&#45;ut2j-blue) !important;-->
+  <!--      border-color: var(&#45;&#45;ut2j-blue) !important;-->
+  <!--    }-->
+
+  <!--    .student-info {-->
+  <!--      color: #6c757d;-->
+  <!--      margin-bottom: 1rem;-->
+  <!--    }-->
+  <!--  </style>-->
+</head>
+<body>
+<nav class="navbar navbar-expand-lg">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="#">
+      <img src="/images/logo.jpg"
+           alt="Logo UT2J">
+      Teach Planner
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav me-auto">
+        <li class="nav-item">
+          <a class="nav-link active" href="/seances">
+            <i class="fas fa-calendar-alt"></i>Calendrier
+          </a>
+        </li>
+      </ul>
+
+      <div class="d-flex align-items-center">
+        <div class="action-buttons">
+          <button id="exportPDF" class="btn btn-action btn-export">
+            <i class="fas fa-file-pdf"></i>Exporter en PDF
+          </button>
+          <div class="position-relative me-3">-->
+            <button class="btn btn-icon btn-transparent" id="notificationButton">
+              <i class="fas fa-bell text-white"></i>
+              <span class="notification-badge" id="notificationBadge">0</span>
+            </button>
+          </div>
+          <!-- Section du profil améliorée -->
+          <div class="user-profile" id="profileTrigger">
+            <div class="user-avatar">
+              <span th:text="${#strings.substring(session.userEmail,0,1).toUpperCase()}">U</span>
+            </div>
+            <div class="user-info-container">
+
+              <p class="user-name" id="studentName" >Nom Prénom</p>
+              <p class="user-role" th:text="${session.isAdmin ? 'Administrateur' : 'Etudiant'}">Rôle</p>
+            </div>
+          </div>
+
+          <!-- Nouveau menu déroulant du profil -->
+          <div class="profile-dropdown" id="profileDropdown">
+            <div class="profile-header">
+              <div class="profile-avatar">
+                <span th:text="${#strings.substring(session.userEmail,0,1).toUpperCase()}">U</span>
+              </div>
+              <h4 class="profile-name" th:text="${session.nom + ' ' + session.prenom}">Nom Prénom</h4>
+              <p class="profile-role">
+                <!--                                <span th:text="${session.isAdmin ? 'Administrateur' : 'Enseignant'}">Rôle</span>-->
+                <span class="status-badge online">
+                    <i class="fas fa-circle fa-xs"></i> En ligne
+                </span>
+              </p>
+            </div>
+
+
+            <div class="profile-info">
+              <div class="profile-info-item">
+                <div class="profile-info-icon">
+                  <i class="fas fa-envelope"></i>
+                </div>
+                <div class="profile-info-content">
+                  <p class="profile-info-label">Email</p>
+                  <p class="profile-info-value" th:text="${session.userEmail}">email@example.com</p>
+                </div>
+              </div>
+
+
+
+              <div class="profile-info-item">
+                <div class="profile-info-icon">
+                  <i class="fas fa-user-tag"></i>
+                </div>
+                <div class="profile-info-content">
+                  <p class="profile-info-label">Statut</p>
+                  <span >Etudiant</span>
+
+                </div>
+              </div>
+              <div>
+
+                <a href="/logout" class="btn btn-action"><i class="fas fa-sign-out-alt"></i>Déconnexion</a>
+              </div>
+
+            </div>
+
+
+          </div>
+        </div>
+
+        <!-- Ajout du système de notifications -->
+        <div class="notification-dropdown" id="notificationDropdown">
+          <div class="notification-header">
+            <i class="fas fa-bell me-2"></i>
+            Notifications
+          </div>
+          <div class="notification-list">
+            <!-- Les notifications seront ajoutées dynamiquement ici -->
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</nav>
+<div class="container-fluid py-4">
+  <div class="row mb-4">
+    <div class="col">
+      <h1 class="h3">Mon Emploi du Temps</h1>
+      <!--      <div id="studentName" class="student-info"></div>-->
+    </div>
+
+  </div>
+
+  <div id="calendar"></div>
+</div>
+
+<!-- Modal de détails de séance -->
+<div class="modal fade" id="seanceDetailsModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Détails de la Séance</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <dl class="row">
+          <dt class="col-sm-4">Matière</dt>
+          <dd class="col-sm-8" id="detailsMatiere"></dd>
+
+          <dt class="col-sm-4">Enseignant</dt>
+          <dd class="col-sm-8" id="detailsEnseignant"></dd>
+
+          <dt class="col-sm-4">Salle</dt>
+          <dd class="col-sm-8" id="detailsSalle"></dd>
+
+          <dt class="col-sm-4">Horaire</dt>
+          <dd class="col-sm-8" id="detailsHoraire"></dd>
+        </dl>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js'></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script th:inline="javascript">
+  document.addEventListener('DOMContentLoaded', function() {
+    const userId = /*[[${session.userId}]]*/ null;
+    const calendar = new FullCalendar.Calendar(document.getElementById('calendar'), {
+      initialView: 'timeGridWeek',
+      headerToolbar: {
+        left: 'prev,next today',
+        center: 'title',
+        right: 'dayGridMonth,timeGridWeek,timeGridDay'
+      },
+      locale: 'fr',
+      firstDay: 1,
+      weekNumbers: true,
+      weekText: 'S',
+      slotMinTime: '08:00:00',
+      slotMaxTime: '20:00:00',
+      allDaySlot: false,
+      height: 'auto',
+      expandRows: true,
+      stickyHeaderDates: true,
+      nowIndicator: true,
+      eventClick: function(info) {
+        showSeanceDetails(info.event);
+      }
+    });
+
+    calendar.render();
+    loadSeances();
+
+    function loadSeances() {
+      fetch(`/api/seances/etudiant/${userId}`)
+              .then(response => {
+                if (!response.ok) {
+                  throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+              })
+              .then(data => {
+                // Mise à jour du nom de l'étudiant
+                if (data.nomComplet) {
+                  document.getElementById('studentName').textContent = data.nomComplet;
+                }
+
+                // Affichage des séances
+                if (data.seances && Array.isArray(data.seances)) {
+                  calendar.removeAllEvents();
+                  data.seances.forEach(seance => {
+                    calendar.addEvent({
+                      id: seance.idSeance,
+                      title: `${seance.nomMatiere}\n${seance.nomEnseignant}\nSalle: ${seance.nomSalle}`,
+                      start: `${seance.date}T${seance.heureDebut}`,
+                      end: `${seance.date}T${seance.heureFin}`,
+                      backgroundColor: getEventColor(seance.nomMatiere),
+                      extendedProps: {
+                        nomMatiere: seance.nomMatiere,
+                        nomEnseignant: seance.nomEnseignant,
+                        nomSalle: seance.nomSalle
+                      }
+                    });
+                  });
+                }
+              })
+              .catch(error => {
+                console.error('Erreur:', error);
+                alert('Erreur lors du chargement des séances');
+              });
+    }
+
+    function showSeanceDetails(event) {
+      document.getElementById('detailsMatiere').textContent = event.extendedProps.nomMatiere;
+      document.getElementById('detailsEnseignant').textContent = event.extendedProps.nomEnseignant;
+      document.getElementById('detailsSalle').textContent = event.extendedProps.nomSalle;
+      document.getElementById('detailsHoraire').textContent =
+              `${event.start.toLocaleTimeString()} - ${event.end.toLocaleTimeString()}`;
+
+      new bootstrap.Modal(document.getElementById('seanceDetailsModal')).show();
+    }
+
+    function getEventColor(matiere) {
+      const colors = {
+        "Mathematique": "#ff5733",
+        "Physique": "#33ff57",
+        "Informatique": "#3357ff",
+        "Chimie": "#ff33a6",
+        "Anglais": "#a633ff",
+        "Histoire": "#ffbb33",
+        "Géographie": "#33ffbb"
+      };
+      return colors[matiere] || "#808080";
+    }
+
+    document.getElementById('exportPDF').addEventListener('click', function() {
+      const element = document.getElementById('calendar');
+      html2pdf()
+              .set({
+                margin: 1,
+                filename: 'emploi_du_temps.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2 },
+                jsPDF: { unit: 'in', format: 'a4', orientation: 'landscape' }
+              })
+              .from(element)
+              .save();
+    });
+  });
+</script>
+</body>
+</html>
